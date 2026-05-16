@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fafaf7;
+  --foreground: #0f0f0f;
+  --accent: #e8490f;
+  --accent-soft: #fde8df;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --surface: #ffffff;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-surface: var(--surface);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans, system-ui, sans-serif);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Selection ─────────────────────────────────────── */
+::selection {
+  background-color: var(--accent);
+  color: #fff;
+}
+
+/* ── Scrollbar ─────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+/* ── Keyframes ─────────────────────────────────────── */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes gradient-drift {
+  0%, 100% { background-position: 0%   60%; }
+  50%       { background-position: 100% 40%; }
+}
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px)    rotate(0deg); }
+  33%       { transform: translateY(-10px) rotate(1deg); }
+  66%       { transform: translateY(5px)   rotate(-1deg); }
+}
+
+/* ── Hero animated gradient ────────────────────────── */
+.hero-bg {
+  background: linear-gradient(-45deg, #fafaf7 0%, #fde8df 35%, #fff5f0 65%, #fafaf7 100%);
+  background-size: 300% 300%;
+  animation: gradient-drift 14s ease infinite;
+}
+
+/* ── Entrance utilities (hero elements — CSS only) ─── */
+.animate-fade-up  { animation: fade-up  0.75s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-fade-in  { animation: fade-in  0.5s ease both; }
+
+.anim-delay-1 { animation-delay:  80ms; }
+.anim-delay-2 { animation-delay: 160ms; }
+.anim-delay-3 { animation-delay: 240ms; }
+.anim-delay-4 { animation-delay: 340ms; }
+.anim-delay-5 { animation-delay: 440ms; }
+
+/* ── Floating decorative blobs (hero) ──────────────── */
+.float-blob {
+  animation: float-slow 9s ease-in-out infinite;
+}
+.float-blob-2 {
+  animation: float-slow 12s ease-in-out infinite reverse;
+}
