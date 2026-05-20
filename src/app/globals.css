@@ -1,13 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fafaf7;
+  --background: #fafaf8;
   --foreground: #0f0f0f;
   --accent: #e8490f;
   --accent-soft: #fde8df;
   --muted: #6b7280;
   --border: #e5e7eb;
   --surface: #ffffff;
+  --ink: #1a1a1a;
 }
 
 @theme inline {
@@ -26,8 +27,11 @@ html {
   scroll-behavior: smooth;
 }
 
+/* ── Body — manga halftone dot paper texture ───────── */
 body {
-  background: var(--background);
+  background-color: var(--background);
+  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.055) 1px, transparent 1px);
+  background-size: 20px 20px;
   color: var(--foreground);
   font-family: var(--font-geist-sans, system-ui, sans-serif);
   -webkit-font-smoothing: antialiased;
@@ -63,23 +67,80 @@ body {
   33%       { transform: translateY(-10px) rotate(1deg); }
   66%       { transform: translateY(5px)   rotate(-1deg); }
 }
+@keyframes speed-spin {
+  from { transform: rotate(0deg);   }
+  to   { transform: rotate(360deg); }
+}
+@keyframes ink-pop {
+  0%   { transform: scale(0.85) rotate(-3deg); opacity: 0; }
+  60%  { transform: scale(1.06) rotate(1deg);  opacity: 1; }
+  100% { transform: scale(1)    rotate(0deg);  opacity: 1; }
+}
+@keyframes panel-shake {
+  0%,100% { transform: translateX(0); }
+  20%      { transform: translateX(-2px) rotate(-0.5deg); }
+  50%      { transform: translateX(2px)  rotate(0.5deg);  }
+  80%      { transform: translateX(-1px) rotate(-0.3deg); }
+}
+@keyframes screentone-slide {
+  0%   { background-position: 0 0;        }
+  100% { background-position: 40px 40px;  }
+}
 
-/* ── Hero animated gradient ────────────────────────── */
+/* ── Hero animated gradient + speed-line streaks ───── */
 .hero-bg {
-  background: linear-gradient(-45deg, #fafaf7 0%, #fde8df 35%, #fff5f0 65%, #fafaf7 100%);
-  background-size: 300% 300%;
+  background-color: #fafaf8;
+  background-image:
+    repeating-linear-gradient(
+      -58deg,
+      transparent 0px,
+      transparent 32px,
+      rgba(232, 73, 15, 0.035) 32px,
+      rgba(232, 73, 15, 0.035) 33px
+    ),
+    linear-gradient(-45deg, #fafaf8 0%, #fde8df 35%, #fff5f0 65%, #fafaf8 100%);
+  background-size: auto, 300% 300%;
   animation: gradient-drift 14s ease infinite;
+}
+
+/* ── Screentone section texture (diagonal lines) ───── */
+.screentone-bg {
+  background-image:
+    repeating-linear-gradient(
+      -45deg,
+      transparent 0px,
+      transparent 5px,
+      rgba(0, 0, 0, 0.025) 5px,
+      rgba(0, 0, 0, 0.025) 6px
+    );
+}
+
+/* ── Ink panel card — manga panel border on hover ───── */
+.ink-panel {
+  transition: box-shadow 0.14s ease, transform 0.14s ease, border-color 0.14s ease;
+}
+.ink-panel:hover {
+  box-shadow: 4px 4px 0px var(--ink);
+  transform: translate(-2px, -2px);
+  border-color: var(--ink) !important;
+}
+
+/* ── Section break line (thick ink) ────────────────── */
+.ink-rule {
+  border-top: 3px solid var(--foreground);
 }
 
 /* ── Entrance utilities (hero elements — CSS only) ─── */
 .animate-fade-up  { animation: fade-up  0.75s cubic-bezier(0.16, 1, 0.3, 1) both; }
 .animate-fade-in  { animation: fade-in  0.5s ease both; }
+.animate-ink-pop  { animation: ink-pop  0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
 
 .anim-delay-1 { animation-delay:  80ms; }
 .anim-delay-2 { animation-delay: 160ms; }
 .anim-delay-3 { animation-delay: 240ms; }
 .anim-delay-4 { animation-delay: 340ms; }
 .anim-delay-5 { animation-delay: 440ms; }
+.anim-delay-6 { animation-delay: 560ms; }
 
 /* ── Floating decorative blobs (hero) ──────────────── */
 .float-blob {
@@ -87,4 +148,31 @@ body {
 }
 .float-blob-2 {
   animation: float-slow 12s ease-in-out infinite reverse;
+}
+
+/* ── Speed lines ring (hero decoration) ────────────── */
+.speed-ring {
+  animation: speed-spin 40s linear infinite;
+  transform-origin: center;
+}
+
+/* ── Manga impact text (bold action numbers) ────────── */
+.manga-impact {
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  -webkit-text-stroke: 0.5px currentColor;
+}
+
+/* ── Comic panel frame ──────────────────────────────── */
+.comic-panel {
+  border: 2px solid var(--foreground);
+  box-shadow: 5px 5px 0px var(--foreground);
+}
+
+/* ── Halftone circle decorations ────────────────────── */
+.halftone-circle {
+  background-image: radial-gradient(circle, rgba(232, 73, 15, 0.12) 1.5px, transparent 1.5px);
+  background-size: 10px 10px;
+  border-radius: 50%;
 }

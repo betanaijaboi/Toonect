@@ -6,6 +6,16 @@ import { MapPin, CheckCircle, Clock, XCircle } from "lucide-react";
 import { ArtistProfile, AvailabilityStatus } from "@/lib/types";
 import clsx from "clsx";
 
+/* Top accent stripe by primary art style */
+const STYLE_STRIPE: Record<string, string> = {
+  manhwa:  "bg-gradient-to-r from-pink-400 to-rose-400",
+  manga:   "bg-gradient-to-r from-blue-400 to-indigo-400",
+  manhua:  "bg-gradient-to-r from-amber-400 to-orange-400",
+  webtoon: "bg-gradient-to-r from-purple-400 to-violet-400",
+  comic:   "bg-gradient-to-r from-green-400 to-emerald-400",
+  other:   "bg-gradient-to-r from-gray-300 to-gray-400",
+};
+
 const STYLE_COLORS: Record<string, string> = {
   manhwa: "bg-pink-100 text-pink-700",
   manga: "bg-blue-100 text-blue-700",
@@ -56,17 +66,23 @@ export default function ArtistCard({ artist }: ArtistCardProps) {
   const avail = AVAILABILITY_CONFIG[artist.availability];
   const AvailIcon = avail.icon;
 
+  const primaryStyle = artist.art_styles[0] ?? "other";
+  const stripe = STYLE_STRIPE[primaryStyle] ?? STYLE_STRIPE.other;
+
   return (
     <motion.div
-      whileHover={{ y: -6, boxShadow: "0 24px 52px rgba(0,0,0,0.11)" }}
-      transition={{ type: "spring", stiffness: 420, damping: 26 }}
+      whileHover={{ y: -3, x: -3, boxShadow: "4px 4px 0px #0f0f0f" }}
+      transition={{ type: "spring", stiffness: 480, damping: 28 }}
       className="h-full rounded-2xl"
       style={{ willChange: "transform" }}
     >
       <Link
         href={`/artists/${artist.username}`}
-        className="group flex flex-col rounded-2xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden hover:border-[var(--accent)] transition-colors duration-200 h-full"
+        className="group flex flex-col rounded-2xl border-2 border-[var(--border)] bg-[var(--surface)] overflow-hidden hover:border-[var(--foreground)] transition-colors duration-150 h-full"
       >
+        {/* Style stripe — top gradient bar */}
+        <div className={clsx("h-1.5 w-full flex-shrink-0", stripe)} />
+
         {/* Avatar */}
         <div className="relative h-32 bg-[#f3f4f6] overflow-hidden">
           {artist.avatar_url ? (
