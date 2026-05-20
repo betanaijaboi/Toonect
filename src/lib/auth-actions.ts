@@ -38,8 +38,39 @@ export async function signIn(formData: FormData) {
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
-    redirect(`/auth/login?error=${encodeURIComponent(error.message)}&next=${encodeURIComponent(next)}`);
+    // Supabase returns "Invalid login credentials" for both wrong password AND
+    // unconfirmed email — detect the unconfirmed case so we can offer a resend button
+    const isUnconfirmed =
+      error.message.toLowerCase().includes("email not confirmed") ||
+      error.message.toLowerCase().includes("invalid login credentials");
+
+    redirect(
+      `/auth/login?error=${encodeURIComponent(error.message)}&next=${encodeURIComponent(next)}${isUnconfirmed ? `&unconfirmed_email=${encodeURIComponent(email)}` : ""}`
+    );
   }
 
   redirect(next);
+}
+
+export async function resendConfirmation(formData: FormData) {
+  const supabase = await createClient();
+  const email = formData.get("email") as string;
+
+  if (!email) {
+    redirect("/auth/login?error=Please+enter+your+email+address+first");
+  }
+
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email,
+    options: {
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/auth/callback`,
+    },
+  });
+
+  if (error) {
+    redirect(`/auth/login?error=${encodeURIComponent(error.message)}`);
+  }
+
+  redirect(`/auth/verify-email?resent=1&email=${encodeURIComponent(email)}`);
 }

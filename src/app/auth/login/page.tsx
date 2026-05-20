@@ -3,23 +3,46 @@
 import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { BookOpen, Eye, EyeOff, Loader2 } from "lucide-react";
-import { signIn } from "@/lib/auth-actions";
+import { BookOpen, Eye, EyeOff, Loader2, Mail, RefreshCw } from "lucide-react";
+import { signIn, resendConfirmation } from "@/lib/auth-actions";
 import clsx from "clsx";
 
 function LoginInner() {
   const searchParams = useSearchParams();
-  const errorParam = searchParams.get("error");
+  const rawError = searchParams.get("error");
   const next = searchParams.get("next") ?? "/";
+  // Set by callback route when exchange fails, or by signIn when login credentials look like unconfirmed email
+  const unconfirmedFromCallback = searchParams.get("unconfirmed") === "1";
+  const unconfirmedEmail = searchParams.get("unconfirmed_email") ?? "";
 
   const [showPassword, setShowPassword] = useState(false);
-  const [pending, setPending] = useState(false);
+  const [loginPending, setLoginPending] = useState(false);
+  const [resendPending, setResendPending] = useState(false);
+  const [resendEmail, setResendEmail] = useState(unconfirmedEmail);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  // Decide which banner variant to show
+  const isUnconfirmedError =
+    unconfirmedFromCallback ||
+    !!unconfirmedEmail ||
+    rawError?.toLowerCase().includes("not confirmed") ||
+    rawError?.toLowerCase().includes("invalid login credentials");
+
+  const errorMessage = rawError
+    ? decodeURIComponent(rawError)
+    : null;
+
+  async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setPending(true);
+    setLoginPending(true);
     await signIn(new FormData(e.currentTarget));
-    setPending(false);
+    setLoginPending(false);
+  }
+
+  async function handleResend(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setResendPending(true);
+    await resendConfirmation(new FormData(e.currentTarget));
+    setResendPending(false);
   }
 
   return (
@@ -36,14 +59,57 @@ function LoginInner() {
           <p className="text-sm text-[var(--muted)] mt-1">Log in to your Toonect account</p>
         </div>
 
-        {/* Error banner */}
-        {errorParam && (
+        {/* ── Error / unconfirmed email banner ─────────── */}
+        {errorMessage && !isUnconfirmedError && (
           <div className="mb-6 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
-            {decodeURIComponent(errorParam)}
+            {errorMessage}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        {isUnconfirmedError && (
+          <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 overflow-hidden">
+            <div className="flex items-start gap-3 px-4 py-3">
+              <Mail className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-amber-800">Email not confirmed</p>
+                <p className="text-xs text-amber-700 mt-0.5 leading-relaxed">
+                  {unconfirmedFromCallback
+                    ? (errorMessage ?? "The confirmation link failed. Try requesting a new one.")
+                    : "You need to confirm your email before logging in."}
+                </p>
+              </div>
+            </div>
+
+            {/* Resend form */}
+            <form onSubmit={handleResend} className="px-4 pb-4 flex flex-col gap-2">
+              <input type="hidden" name="email" value={resendEmail} />
+              {!resendEmail && (
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  placeholder="Enter your email to resend"
+                  value={resendEmail}
+                  onChange={(e) => setResendEmail(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-amber-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+                />
+              )}
+              <button
+                type="submit"
+                disabled={resendPending}
+                className="flex items-center justify-center gap-2 w-full py-2 rounded-lg bg-amber-500 text-white text-xs font-semibold hover:bg-amber-600 transition-colors disabled:opacity-60"
+              >
+                {resendPending
+                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  : <RefreshCw className="w-3.5 h-3.5" />}
+                {resendPending ? "Sending…" : "Resend confirmation email"}
+              </button>
+            </form>
+          </div>
+        )}
+
+        {/* ── Login form ────────────────────────────────── */}
+        <form onSubmit={handleLogin} className="flex flex-col gap-5">
           <input type="hidden" name="next" value={next} />
 
           {/* Email */}
@@ -56,6 +122,8 @@ function LoginInner() {
               required
               autoFocus
               autoComplete="email"
+              defaultValue={resendEmail}
+              onChange={(e) => setResendEmail(e.target.value)}
               placeholder="you@example.com"
               className="px-4 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent transition"
             />
@@ -92,11 +160,11 @@ function LoginInner() {
 
           <button
             type="submit"
-            disabled={pending}
+            disabled={loginPending}
             className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[var(--accent)] text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {pending && <Loader2 className="w-4 h-4 animate-spin" />}
-            {pending ? "Logging in…" : "Log in"}
+            {loginPending && <Loader2 className="w-4 h-4 animate-spin" />}
+            {loginPending ? "Logging in…" : "Log in"}
           </button>
         </form>
 
