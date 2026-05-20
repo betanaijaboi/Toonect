@@ -456,7 +456,7 @@ export default async function HomePage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
           {VALUE_PROPS.map((item, i) => (
             <AnimateIn key={item.title} delay={i * 0.1}>
-              <div className="flex flex-col gap-3 p-6 rounded-2xl border-2 border-[var(--border)] bg-[var(--surface)] hover:border-[var(--foreground)] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all duration-150 group" style={{ transition: "box-shadow 0.14s, transform 0.14s, border-color 0.14s" }} onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = "4px 4px 0px #0f0f0f"; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = ""; }}>
+              <div className="flex flex-col gap-3 p-6 rounded-2xl border-2 border-[var(--border)] bg-[var(--surface)] ink-panel group">
                 <div className="w-10 h-10 rounded-xl bg-[var(--foreground)] flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
                   {item.icon}
                 </div>
