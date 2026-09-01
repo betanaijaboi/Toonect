@@ -65,12 +65,12 @@ function NewMessageInner() {
 
   // Debounced user search
   useEffect(() => {
-    if (!userSearch.trim() || userSearch.length < 2) {
-      setSearchResults([]);
-      return;
-    }
-
     const timer = setTimeout(async () => {
+      if (!userSearch.trim() || userSearch.length < 2) {
+        setSearchResults([]);
+        return;
+      }
+
       const { data } = await supabase
         .from("profiles")
         .select("id, username, display_name, role")

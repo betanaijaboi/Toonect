@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   MapPin,
@@ -18,6 +19,33 @@ import ProjectCard from "@/components/ProjectCard";
 import clsx from "clsx";
 
 export const dynamic = "force-dynamic";
+
+async function resolveWriter(username: string): Promise<WriterProfile | null> {
+  const writer = await getWriterByUsername(username);
+  if (writer) return writer;
+  return MOCK_WRITERS.find((w) => w.username === username) ?? null;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ username: string }>;
+}): Promise<Metadata> {
+  const { username } = await params;
+  const writer = await resolveWriter(username);
+  if (!writer) return { title: "Writer Not Found" };
+
+  const description = writer.bio
+    ? writer.bio.slice(0, 155)
+    : `${writer.display_name} is a writer on Toonect looking for artists in ${writer.looking_for.join(", ")}.`;
+
+  return {
+    title: writer.display_name,
+    description,
+    alternates: { canonical: `/writers/${writer.username}` },
+    openGraph: { title: `${writer.display_name} (@${writer.username})`, description },
+  };
+}
 
 const STYLE_COLORS: Record<string, string> = {
   manhwa: "bg-pink-100 text-pink-700 border-pink-200",
@@ -59,13 +87,7 @@ export default async function WriterProfilePage({
 }) {
   const { username } = await params;
 
-  // Try real DB first, fall back to mock data
-  let writer: WriterProfile | null = await getWriterByUsername(username);
-  if (!writer) {
-    const mock = MOCK_WRITERS.find((w) => w.username === username);
-    writer = mock ?? null;
-  }
-
+  const writer = await resolveWriter(username);
   if (!writer) notFound();
 
   // Check if the current viewer owns this profile
@@ -75,16 +97,36 @@ export default async function WriterProfilePage({
   const openProjects = writer.projects.filter((p) => p.status === "open");
   const otherProjects = writer.projects.filter((p) => p.status !== "open");
 
+  const personJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ProfilePage",
+    mainEntity: {
+      "@type": "Person",
+      name: writer.display_name,
+      alternateName: writer.username,
+      description: writer.bio ?? undefined,
+      url: `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://toonect.vercel.app"}/writers/${writer.username}`,
+      image: writer.avatar_url ?? undefined,
+      jobTitle: "Writer",
+    },
+  };
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
-      {/* Back */}
-      <Link
-        href="/browse?role=writers"
-        className="inline-flex items-center gap-1.5 text-sm text-[var(--muted)] hover:text-[var(--foreground)] transition-colors mb-8"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Back to Browse
-      </Link>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+      />
+
+      {/* Breadcrumb */}
+      <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-[var(--muted)] mb-8">
+        <Link href="/browse?role=writers" className="hover:text-[var(--foreground)] transition-colors flex items-center gap-1.5">
+          <ArrowLeft className="w-4 h-4" />
+          Browse
+        </Link>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page" className="text-[var(--foreground)] font-medium">{writer.display_name}</span>
+      </nav>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Sidebar */}

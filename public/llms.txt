@@ -1,0 +1,21 @@
+# Toonect
+
+> Connects manga, manhwa, and manhua writers with artists — for free collaborations, commissions, or contracted work.
+
+Toonect is a matchmaking platform for comic creators. Writers post story briefs describing their project, genre, and preferred art style; artists showcase portfolios and message writers directly. Toonect charges zero platform fees — writers and artists negotiate and agree on terms between themselves.
+
+## Key pages
+- `/browse` — browse artists and writers by style, availability, and work type
+- `/projects` — open story briefs looking for an artist
+- `/artists/{username}` — an artist's public profile and portfolio
+- `/writers/{username}` — a writer's public profile and open projects
+
+## Legal
+- Terms of Service: /terms
+- Privacy Policy: /privacy
+
+## Stack
+Next.js (App Router), Supabase (auth, database, storage, real-time messaging).
+
+## Links
+- Source: https://github.com/betanaijaboi/Toonect

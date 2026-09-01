@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   MapPin,
@@ -17,6 +18,33 @@ import { ArtistProfile, AvailabilityStatus } from "@/lib/types";
 import clsx from "clsx";
 
 export const dynamic = "force-dynamic";
+
+async function resolveArtist(username: string): Promise<ArtistProfile | null> {
+  const artist = await getArtistByUsername(username);
+  if (artist) return artist;
+  return MOCK_ARTISTS.find((a) => a.username === username) ?? null;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ username: string }>;
+}): Promise<Metadata> {
+  const { username } = await params;
+  const artist = await resolveArtist(username);
+  if (!artist) return { title: "Artist Not Found" };
+
+  const description = artist.bio
+    ? artist.bio.slice(0, 155)
+    : `${artist.display_name} is an artist on Toonect — ${artist.art_styles.join(", ")}.`;
+
+  return {
+    title: artist.display_name,
+    description,
+    alternates: { canonical: `/artists/${artist.username}` },
+    openGraph: { title: `${artist.display_name} (@${artist.username})`, description },
+  };
+}
 
 const STYLE_COLORS: Record<string, string> = {
   manhwa: "bg-pink-100 text-pink-700 border-pink-200",
@@ -67,13 +95,7 @@ export default async function ArtistProfilePage({
 }) {
   const { username } = await params;
 
-  // Try real DB first, fall back to mock data
-  let artist: ArtistProfile | null = await getArtistByUsername(username);
-  if (!artist) {
-    const mock = MOCK_ARTISTS.find((a) => a.username === username);
-    artist = mock ?? null;
-  }
-
+  const artist = await resolveArtist(username);
   if (!artist) notFound();
 
   // Check if the current viewer owns this profile
@@ -90,16 +112,36 @@ export default async function ArtistProfilePage({
       ? `$${artist.price_range_min} – $${artist.price_range_max}`
       : `From $${artist.price_range_min}`;
 
+  const personJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ProfilePage",
+    mainEntity: {
+      "@type": "Person",
+      name: artist.display_name,
+      alternateName: artist.username,
+      description: artist.bio ?? undefined,
+      url: `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://toonect.vercel.app"}/artists/${artist.username}`,
+      image: artist.avatar_url ?? undefined,
+      jobTitle: "Comic Artist",
+    },
+  };
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
-      {/* Back */}
-      <Link
-        href="/browse"
-        className="inline-flex items-center gap-1.5 text-sm text-[var(--muted)] hover:text-[var(--foreground)] transition-colors mb-8"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Back to Browse
-      </Link>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+      />
+
+      {/* Breadcrumb */}
+      <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-[var(--muted)] mb-8">
+        <Link href="/browse" className="hover:text-[var(--foreground)] transition-colors flex items-center gap-1.5">
+          <ArrowLeft className="w-4 h-4" />
+          Browse
+        </Link>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page" className="text-[var(--foreground)] font-medium">{artist.display_name}</span>
+      </nav>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Sidebar */}

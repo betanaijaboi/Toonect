@@ -11,12 +11,17 @@ export async function signUp(formData: FormData) {
   const displayName = formData.get("display_name") as string;
   const username = formData.get("username") as string;
   const role = formData.get("role") as "writer" | "artist";
+  const termsAcceptedAt = formData.get("terms_accepted_at") as string;
+
+  if (!termsAcceptedAt) {
+    redirect(`/auth/signup?error=${encodeURIComponent("You must accept the Terms of Service and Privacy Policy.")}`);
+  }
 
   const { error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      data: { display_name: displayName, username, role },
+      data: { display_name: displayName, username, role, terms_accepted_at: termsAcceptedAt },
       emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/auth/callback`,
     },
   });

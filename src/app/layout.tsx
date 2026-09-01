@@ -15,10 +15,47 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://toonect.vercel.app";
+const SITE_DESCRIPTION =
+  "Connect writers with manga, manhwa, and manhua artists. Find your perfect creative partner for free, commissioned, or contracted work.";
+
 export const metadata: Metadata = {
-  title: "Toonect — Where Stories Find Their Art",
-  description:
-    "Connect writers with manga, manhwa, and manhua artists. Find your perfect creative partner for free, commissioned, or contracted work.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Toonect — Where Stories Find Their Art",
+    template: "%s | Toonect",
+  },
+  description: SITE_DESCRIPTION,
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    siteName: "Toonect",
+    title: "Toonect — Where Stories Find Their Art",
+    description: SITE_DESCRIPTION,
+    url: "/",
+    images: [{ url: "/og-image.jpg", width: 1200, height: 670 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Toonect — Where Stories Find Their Art",
+    description: SITE_DESCRIPTION,
+    images: ["/og-image.jpg"],
+  },
+};
+
+const ORGANIZATION_JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Toonect",
+  url: SITE_URL,
+  description: SITE_DESCRIPTION,
+};
+
+const WEBSITE_JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "Toonect",
+  url: SITE_URL,
 };
 
 export default function RootLayout({
@@ -32,6 +69,14 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full`}
     >
       <body className="min-h-full flex flex-col bg-[var(--background)] text-[var(--foreground)]">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_JSON_LD) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(WEBSITE_JSON_LD) }}
+        />
         <Navbar />
         <main className="flex-1">{children}</main>
 
@@ -116,6 +161,8 @@ export default function RootLayout({
             <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-600">
               <p>© 2026 Toonect. Built for creators, by creators.</p>
               <div className="flex gap-4">
+                <Link href="/terms" className="hover:text-gray-300 transition-colors">Terms</Link>
+                <Link href="/privacy" className="hover:text-gray-300 transition-colors">Privacy</Link>
                 <span>Manhwa · Manga · Manhua · Webtoon</span>
               </div>
             </div>

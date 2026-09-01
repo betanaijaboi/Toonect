@@ -1,9 +1,16 @@
+import type { Metadata } from "next";
 import { getOpenProjects, getCurrentUserProfile } from "@/lib/supabase/queries";
 import { MOCK_WRITERS } from "@/lib/mock-data";
 import { ArtStyle, WorkType, ProjectStatus } from "@/lib/types";
 import ProjectsClient from "./ProjectsClient";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Open Story Briefs",
+  description: "Browse open story briefs from writers looking for an artist — free collaborations, commissions, and contracted work.",
+  alternates: { canonical: "/projects" },
+};
 
 interface ProjectRow {
   id: string;
