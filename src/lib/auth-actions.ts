@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { safeNextPath } from "@/lib/filters";
 
 export async function signUp(formData: FormData) {
   const supabase = await createClient();
@@ -38,7 +39,7 @@ export async function signIn(formData: FormData) {
 
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
-  const next = (formData.get("next") as string) || "/";
+  const next = safeNextPath(formData.get("next") as string | null);
 
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
