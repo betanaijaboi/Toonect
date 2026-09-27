@@ -4,6 +4,8 @@ A platform connecting comic writers with manga, manhwa, and manhua artists. Writ
 
 **Stack:** Next.js 16 · Supabase · Tailwind CSS v4 · Framer Motion · TypeScript
 
+**Full spec:** [docs/PRD.md](docs/PRD.md): product requirements, user stories, user flows, database design and RLS policies, architecture, API routes and design system.
+
 ---
 
 ## Table of Contents
@@ -15,6 +17,7 @@ A platform connecting comic writers with manga, manhwa, and manhua artists. Writ
 - [Running the App](#running-the-app)
 - [Deploying to Vercel](#deploying-to-vercel)
 - [Project Structure](#project-structure)
+- [Documentation](docs/PRD.md)
 
 ---
 
