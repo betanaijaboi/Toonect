@@ -11,6 +11,12 @@ import type {
   WorkType,
   AvailabilityStatus,
 } from "@/lib/types";
+import {
+  buildIlikeSearch,
+  matchesArtistFilters,
+  matchesProjectFilters,
+  matchesWriterFilters,
+} from "@/lib/filters";
 
 // ─────────────────────────────────────────────────────────────
 // ARTISTS
@@ -37,11 +43,8 @@ export async function getArtists(filters: ArtistFilters = {}): Promise<ArtistPro
     `)
     .eq("role", "artist");
 
-  if (filters.search) {
-    query = query.or(
-      `display_name.ilike.%${filters.search}%,username.ilike.%${filters.search}%,bio.ilike.%${filters.search}%`
-    );
-  }
+  const search = buildIlikeSearch(["display_name", "username", "bio"], filters.search);
+  if (search) query = query.or(search);
 
   const { data, error } = await query.order("created_at", { ascending: false });
   if (error) { console.error("getArtists:", error); return []; }
@@ -57,11 +60,7 @@ export async function getArtists(filters: ArtistFilters = {}): Promise<ArtistPro
       } as unknown as ArtistProfile;
     })
     .filter((a): a is ArtistProfile => {
-      if (!a) return false;
-      if (filters.styles?.length && !filters.styles.some((s) => (a.art_styles ?? []).includes(s))) return false;
-      if (filters.workTypes?.length && !filters.workTypes.some((w) => (a.work_types ?? []).includes(w))) return false;
-      if (filters.availability?.length && !filters.availability.includes(a.availability)) return false;
-      return true;
+      return !!a && matchesArtistFilters(a, filters);
     });
 }
 
@@ -119,11 +118,8 @@ export async function getWriters(filters: WriterFilters = {}): Promise<WriterPro
     `)
     .eq("role", "writer");
 
-  if (filters.search) {
-    query = query.or(
-      `display_name.ilike.%${filters.search}%,username.ilike.%${filters.search}%,bio.ilike.%${filters.search}%`
-    );
-  }
+  const search = buildIlikeSearch(["display_name", "username", "bio"], filters.search);
+  if (search) query = query.or(search);
 
   const { data, error } = await query.order("created_at", { ascending: false });
   if (error) { console.error("getWriters:", error); return []; }
@@ -140,10 +136,7 @@ export async function getWriters(filters: WriterFilters = {}): Promise<WriterPro
       } as WriterProfile;
     })
     .filter((w): w is WriterProfile => {
-      if (!w) return false;
-      if (filters.styles?.length && !filters.styles.some((s) => (w.looking_for ?? []).includes(s))) return false;
-      if (filters.workTypes?.length && !filters.workTypes.some((wt) => (w.projects ?? []).some((p) => p.work_type === wt))) return false;
-      return true;
+      return !!w && matchesWriterFilters(w, filters);
     });
 }
 
@@ -197,9 +190,8 @@ export async function getOpenProjects(filters: ProjectFilters = {}) {
     `)
     .eq("status", "open");
 
-  if (filters.search) {
-    query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%,genre.ilike.%${filters.search}%`);
-  }
+  const search = buildIlikeSearch(["title", "description", "genre"], filters.search);
+  if (search) query = query.or(search);
   if (filters.genres?.length) {
     query = query.in("genre", filters.genres);
   }
@@ -208,11 +200,12 @@ export async function getOpenProjects(filters: ProjectFilters = {}) {
   if (error) { console.error("getOpenProjects:", error); return []; }
 
   return (data ?? [])
-    .filter((row: Record<string, unknown>) => {
-      if (filters.styles?.length && !filters.styles.some((s) => ((row.style_wanted as string[]) ?? []).includes(s))) return false;
-      if (filters.workTypes?.length && !filters.workTypes.includes(row.work_type as WorkType)) return false;
-      return true;
-    })
+    .filter((row: Record<string, unknown>) =>
+      matchesProjectFilters(
+        { style_wanted: row.style_wanted as ArtStyle[], work_type: row.work_type as WorkType },
+        filters,
+      )
+    )
     .map((row: Record<string, unknown>) => ({
       ...row,
       writerUsername: (row.profiles as Record<string, string>)?.username ?? "",

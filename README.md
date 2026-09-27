@@ -17,6 +17,7 @@ A platform connecting comic writers with manga, manhwa, and manhua artists. Writ
 - [Running the App](#running-the-app)
 - [Deploying to Vercel](#deploying-to-vercel)
 - [Project Structure](#project-structure)
+- [Tests](#tests)
 - [Documentation](docs/PRD.md)
 
 ---
@@ -197,6 +198,22 @@ Toonect/
 ├── public/                     # Static assets
 └── .env.local                  # Your local environment variables (never committed)
 ```
+
+---
+
+## Tests
+
+```bash
+npm test          # Vitest, runs in Node; no Supabase project needed
+```
+
+| Suite | Covers |
+|---|---|
+| `__tests__/filters.test.ts` | Safe post-login redirects (off-site, `//host` and `@host` tricks rejected), search sanitising against PostgREST filter injection, artist/writer/project filter matching |
+| `__tests__/auth-callback.test.ts` | Email-confirmation callback: code exchange, same-site redirect only, plain-language error for the different-browser PKCE failure |
+| `__tests__/project-actions.test.ts` | Only writers can post; input is trimmed; only the owner can edit or delete a project |
+
+CI runs type-check, lint and tests on every push and pull request (`.github/workflows/ci.yml`).
 
 ---
 
